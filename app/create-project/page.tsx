@@ -425,8 +425,8 @@ export default function CreateProjectPage() {
                         <li>• Last Name (recommended)</li>
                         <li>• Company (recommended)</li>
                         <li>• Company Size (recommended)</li>
-                        <li>• Company Website (recommended)</li>
-                        <li>• LinkedIn Profile of Company (recommended)</li>
+                        <li>• Company Website (required)</li>
+                        <li>• LinkedIn Profile of Company (required)</li>
                         <li>• Job Title (optional)</li>
                       </ul>
                     </div>
