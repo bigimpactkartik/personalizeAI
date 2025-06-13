@@ -605,6 +605,19 @@ export default function CreateProjectPage() {
                               className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
                             />
                           </div>
+                          <div className="space-y-2">
+                            <Label className="text-white flex items-center">
+                              <Key className="h-4 w-4 mr-2" />
+                              ssm API KEY 
+                            </Label>
+                            <Input
+                              type="password"
+                              placeholder="sk-ant-..."
+                              value={apiSettings.SSM_api}
+                              onChange={(e) => updateAPISettings("claude_api", e.target.value)}
+                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
                         </div>
 
                         <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4">
