@@ -32,6 +32,7 @@ interface BasicSettings {
   emails_per_mailbox: number
   batch_duration_days: number
   emails_per_contact: number
+  process_only_valid_emails: boolean
 }
 
 interface AdvancedSetting {
@@ -67,10 +68,23 @@ export default function CreateProjectPage() {
     emails_per_mailbox: 30,
     batch_duration_days: 10,
     emails_per_contact: 3,
+    process_only_valid_emails: true,
   })
 
   // Advanced Settings with defaults
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSetting[]>([
+    {
+      size: "1-10",
+      no_of_contacts: 2,
+      primary_target_roles: ["CEO", "Founder"],
+      secondary_target_roles: ["Owner", "Director"],
+    },
+    {
+      size: "11-20",
+      no_of_contacts: 3,
+      primary_target_roles: ["CEO", "Founder", "Co-Founder"],
+      secondary_target_roles: ["Director", "Head of"],
+    },
     {
       size: "1-50",
       no_of_contacts: 4,
@@ -108,7 +122,7 @@ export default function CreateProjectPage() {
     openai_api: "",
     gemini_api: "",
     claude_api: "",
-    selected_model: "openai",
+    selected_model: "openai-gpt4",
   })
 
   const [paymentPlan, setPaymentPlan] = useState("starter")
@@ -138,7 +152,7 @@ export default function CreateProjectPage() {
     }))
   }
 
-  const updateBasicSetting = (key: keyof BasicSettings, value: number) => {
+  const updateBasicSetting = (key: keyof BasicSettings, value: any) => {
     setBasicSettings((prev) => ({
       ...prev,
       [key]: value,
@@ -154,6 +168,11 @@ export default function CreateProjectPage() {
       ...prev,
       [key]: value,
     }))
+  }
+
+  const calculateEmailCapacity = () => {
+    const capacity = basicSettings.mailboxes * basicSettings.emails_per_mailbox
+    alert(`Total Email Capacity: ${capacity} emails`)
   }
 
   return (
@@ -448,53 +467,156 @@ export default function CreateProjectPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Basic Settings Collapsible Section */}
+                    {/* Email Capacity Section (renamed from Basic Settings) */}
                     <CollapsibleSection
-                      title="Basic Settings"
+                      title="Email Capacity"
                       icon={<Sliders className="h-4 w-4 text-purple-400" />}
                       defaultOpen={false}
                     >
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-white">Mailboxes</Label>
-                          <Input
-                            type="number"
-                            value={basicSettings.mailboxes}
-                            onChange={(e) => updateBasicSetting("mailboxes", Number(e.target.value))}
-                            className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
-                          />
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-white">Mailboxes</Label>
+                            <Input
+                              type="number"
+                              value={basicSettings.mailboxes}
+                              onChange={(e) => updateBasicSetting("mailboxes", Number(e.target.value))}
+                              className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Emails per Mailbox</Label>
+                            <Input
+                              type="number"
+                              value={basicSettings.emails_per_mailbox}
+                              onChange={(e) => updateBasicSetting("emails_per_mailbox", Number(e.target.value))}
+                              className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Batch Duration (Days)</Label>
+                            <Input
+                              type="number"
+                              value={basicSettings.batch_duration_days}
+                              onChange={(e) => updateBasicSetting("batch_duration_days", Number(e.target.value))}
+                              className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white">Emails per Contact</Label>
+                            <Input
+                              type="number"
+                              value={basicSettings.emails_per_contact}
+                              onChange={(e) => updateBasicSetting("emails_per_contact", Number(e.target.value))}
+                              className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-white">Emails per Mailbox</Label>
-                          <Input
-                            type="number"
-                            value={basicSettings.emails_per_mailbox}
-                            onChange={(e) => updateBasicSetting("emails_per_mailbox", Number(e.target.value))}
-                            className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
+
+                        <div className="flex items-center space-x-2 mt-2">
+                          <input
+                            type="checkbox"
+                            id="process_only_valid_emails"
+                            checked={basicSettings.process_only_valid_emails}
+                            onChange={(e) => updateBasicSetting("process_only_valid_emails", e.target.checked)}
+                            className="rounded border-white/20 bg-white/5 text-purple-600 focus:ring-purple-600"
                           />
+                          <Label htmlFor="process_only_valid_emails" className="text-white">
+                            Process only valid emails
+                          </Label>
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-white">Batch Duration (Days)</Label>
-                          <Input
-                            type="number"
-                            value={basicSettings.batch_duration_days}
-                            onChange={(e) => updateBasicSetting("batch_duration_days", Number(e.target.value))}
-                            className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-white">Emails per Contact</Label>
-                          <Input
-                            type="number"
-                            value={basicSettings.emails_per_contact}
-                            onChange={(e) => updateBasicSetting("emails_per_contact", Number(e.target.value))}
-                            className="bg-white/5 border-white/20 text-white transition-all duration-200 focus:bg-white/10"
-                          />
-                        </div>
+
+                        <Button
+                          type="button"
+                          onClick={calculateEmailCapacity}
+                          className="mt-2 bg-purple-600 hover:bg-purple-700 text-white transition-all duration-200 hover:scale-105"
+                        >
+                          Calculate Email Capacity
+                        </Button>
                       </div>
                     </CollapsibleSection>
 
-                    {/* Advanced Settings Collapsible Section */}
+                    {/* AI Models Tab */}
+                    <div className="space-y-4">
+                      <h3 className="text-white font-medium flex items-center">
+                        <Key className="h-4 w-4 mr-2 text-purple-400" />
+                        AI Models
+                      </h3>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-white">Select AI Model</Label>
+                          <Select
+                            value={apiSettings.selected_model}
+                            onValueChange={(value) => updateAPISettings("selected_model", value)}
+                          >
+                            <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="openai-gpt4">OpenAI GPT-4</SelectItem>
+                              <SelectItem value="openai-gpt4o">OpenAI GPT-4o</SelectItem>
+                              <SelectItem value="openai-gpt35">OpenAI GPT-3.5 Turbo</SelectItem>
+                              <SelectItem value="gemini-pro">Google Gemini Pro</SelectItem>
+                              <SelectItem value="gemini-ultra">Google Gemini Ultra</SelectItem>
+                              <SelectItem value="claude-3-opus">Anthropic Claude 3 Opus</SelectItem>
+                              <SelectItem value="claude-3-sonnet">Anthropic Claude 3 Sonnet</SelectItem>
+                              <SelectItem value="claude-3-haiku">Anthropic Claude 3 Haiku</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-white flex items-center">
+                              <Key className="h-4 w-4 mr-2" />
+                              OpenAI API Key
+                            </Label>
+                            <Input
+                              type="password"
+                              placeholder="sk-..."
+                              value={apiSettings.openai_api}
+                              onChange={(e) => updateAPISettings("openai_api", e.target.value)}
+                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white flex items-center">
+                              <Key className="h-4 w-4 mr-2" />
+                              Gemini API Key
+                            </Label>
+                            <Input
+                              type="password"
+                              placeholder="AI..."
+                              value={apiSettings.gemini_api}
+                              onChange={(e) => updateAPISettings("gemini_api", e.target.value)}
+                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white flex items-center">
+                              <Key className="h-4 w-4 mr-2" />
+                              Claude API Key
+                            </Label>
+                            <Input
+                              type="password"
+                              placeholder="sk-ant-..."
+                              value={apiSettings.claude_api}
+                              onChange={(e) => updateAPISettings("claude_api", e.target.value)}
+                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4">
+                          <p className="text-yellow-400 text-sm">
+                            <strong>Note:</strong> API keys are encrypted and stored securely. You only need to provide
+                            the key for your selected AI model.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Advanced Settings Collapsible Section - Moved below AI Models */}
                     <CollapsibleSection
                       title="Advanced Settings"
                       icon={<Users className="h-4 w-4 text-purple-400" />}
@@ -555,81 +677,6 @@ export default function CreateProjectPage() {
                         ))}
                       </div>
                     </CollapsibleSection>
-
-                    {/* AI Models Tab (unchanged) */}
-                    <div className="space-y-4">
-                      <h3 className="text-white font-medium flex items-center">
-                        <Key className="h-4 w-4 mr-2 text-purple-400" />
-                        AI Models
-                      </h3>
-                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-white">Select AI Model</Label>
-                          <Select
-                            value={apiSettings.selected_model}
-                            onValueChange={(value) => updateAPISettings("selected_model", value)}
-                          >
-                            <SelectTrigger className="bg-white/5 border-white/20 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="openai">OpenAI GPT</SelectItem>
-                              <SelectItem value="gemini">Google Gemini</SelectItem>
-                              <SelectItem value="claude">Anthropic Claude</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="grid gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-white flex items-center">
-                              <Key className="h-4 w-4 mr-2" />
-                              OpenAI API Key
-                            </Label>
-                            <Input
-                              type="password"
-                              placeholder="sk-..."
-                              value={apiSettings.openai_api}
-                              onChange={(e) => updateAPISettings("openai_api", e.target.value)}
-                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-white flex items-center">
-                              <Key className="h-4 w-4 mr-2" />
-                              Gemini API Key
-                            </Label>
-                            <Input
-                              type="password"
-                              placeholder="AI..."
-                              value={apiSettings.gemini_api}
-                              onChange={(e) => updateAPISettings("gemini_api", e.target.value)}
-                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-white flex items-center">
-                              <Key className="h-4 w-4 mr-2" />
-                              Claude API Key
-                            </Label>
-                            <Input
-                              type="password"
-                              placeholder="sk-ant-..."
-                              value={apiSettings.claude_api}
-                              onChange={(e) => updateAPISettings("claude_api", e.target.value)}
-                              className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 transition-all duration-200 focus:bg-white/10"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4">
-                          <p className="text-yellow-400 text-sm">
-                            <strong>Note:</strong> API keys are encrypted and stored securely. You only need to provide
-                            the key for your selected AI model.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="flex space-x-4 mt-6">
                       <Button
